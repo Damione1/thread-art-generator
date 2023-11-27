@@ -15,7 +15,7 @@ func main() {
 	tg := new(threadGenerator.ThreadGenerator)
 
 	args := threadGenerator.Args{
-		NailsQuantity:     300,
+		NailsQuantity:     200,
 		ImgSize:           1000,
 		MaxPaths:          15000,
 		StartingNail:      0,

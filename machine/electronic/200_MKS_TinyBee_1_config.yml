@@ -70,8 +70,8 @@ axes:
     # One full rotation of the plate is 4000*6=24000 steps on the motor
     # To simplify, we will define the value of a milimiter in nail.
     # On the plate there is 300 nails
-    # So the number of motor steps between nails is 24000/300=80 steps
-    steps_per_mm: 80.000
+    # So the number of motor steps between nails is 24000/200=120 steps
+    steps_per_mm: 120.000
     max_rate_mm_per_min: 10000.000
     acceleration_mm_per_sec2: 75.000
     max_travel_mm: 200.000
