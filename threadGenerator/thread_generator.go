@@ -407,7 +407,8 @@ func (tg *ThreadGenerator) GetPathsList() []Path {
 func (tg *ThreadGenerator) GetGcode() []string {
 	gCodeLines := []string{fmt.Sprintf("G28 %s5 %s0 %s0", tg.needleAxis, tg.spindleAxis, tg.rotationAxis)} // GCode for homing
 	feedRate := 3000
-	var nailOffset float32 = 0.5
+	var nailOffsetBefore float32 = 0.4
+	var nailOffsetAfter float32 = 0.35
 	for i, path := range tg.pathsList {
 		if i == 0 {
 			gCodeLines = append(gCodeLines, fmt.Sprintf("G01 %s%d F%d; Move to nail %d", tg.needleAxis, path.StartingNail, feedRate, path.StartingNail))
@@ -421,7 +422,7 @@ func (tg *ThreadGenerator) GetGcode() []string {
 
 		if abs(delta) < (tg.nailsQuantity / 2) {
 			// Move directly if less than half the number of nails.
-			move := tg.moveToPin(toPin, feedRate, nailOffset)
+			move := tg.moveToPin(toPin, feedRate, nailOffsetBefore)
 			gCodeLines = append(gCodeLines, move)
 		} else {
 			// Move relatively if more than half the total nails.
@@ -430,12 +431,12 @@ func (tg *ThreadGenerator) GetGcode() []string {
 			if delta > 0 {
 				toPinRelative = -(tg.nailsQuantity - abs(delta))
 			}
-			gCodeLines = append(gCodeLines, tg.moveByDelta(toPinRelative, toPin, feedRate, nailOffset))
+			gCodeLines = append(gCodeLines, tg.moveByDelta(toPinRelative, toPin, feedRate, nailOffsetBefore))
 			gCodeLines = append(gCodeLines, "G90 ; Switch back to absolute positioning mode")
-			gCodeLines = append(gCodeLines, fmt.Sprintf("G92 %s%.2f; Set current position to %.2f", tg.rotationAxis, float32(toPin)-nailOffset, float32(toPin)-nailOffset))
+			gCodeLines = append(gCodeLines, fmt.Sprintf("G92 %s%.2f; Set current position to %.2f", tg.rotationAxis, float32(toPin)-nailOffsetBefore, float32(toPin)-nailOffsetBefore))
 		}
 		// Generate GCode lines for the thread movement
-		gCodeLines = append(gCodeLines, tg.pinWrapGcode(fromPin, toPin, nailOffset)...)
+		gCodeLines = append(gCodeLines, tg.pinWrapGcode(fromPin, toPin, nailOffsetAfter)...)
 	}
 	return gCodeLines
 }
@@ -485,6 +486,8 @@ func (tg *ThreadGenerator) GenerateHolesGcode() []string {
 	AxisYMax := -3.20
 
 	gCodeLines := []string{fmt.Sprintf("G28 %s0 %s0", tg.spindleAxis, tg.rotationAxis)} // GCode for homing
+	gCodeLines = append(gCodeLines, fmt.Sprintf("G01 %s%d F%d; Move to nail %d", tg.rotationAxis, 0, 1000, 0))
+	gCodeLines = append(gCodeLines, "M0 ; Pausing to allow for drill to be started")
 
 	for i := 0; i < tg.nailsQuantity; i++ {
 		gCodeLines = append(gCodeLines, fmt.Sprintf("G01 %s%d F%d; Move to nail %d", tg.rotationAxis, i, rotationSpeed, i))
